@@ -1,7 +1,9 @@
 use std::error::Error;
 use std::io;
-use crossterm::{ExecutableCommand, terminal};
+use std::time::Duration;
+use crossterm::{event, ExecutableCommand, terminal};
 use crossterm::cursor::{Hide, Show};
+use crossterm::event::{Event, KeyCode};
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
 use rusty_audio::Audio;
 
@@ -24,6 +26,21 @@ fn main() -> Result <(), Box<dyn Error>> {
     stdout.execute(EnterAlternateScreen)?;  // "execute" is an extension provided by crossterm
                                                      // to ommediatelly execute something
     stdout.execute(Hide)?;
+
+    'gameloop: loop {
+        //Input
+        while event::poll(Duration::default())? {
+            if let Event::Key(key_event) = event::read()? {
+                match key_event.code {
+                    KeyCode::Esc | KeyCode::Char('q') => {
+                        audio.play("lose");
+                        break 'gameloop
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
 
     //Cleanup
     audio.wait();
