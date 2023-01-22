@@ -8,6 +8,7 @@ use crossterm::event::{Event, KeyCode};
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
 use rusty_audio::Audio;
 use invaders::{frame, render};
+use invaders::frame::new_frame;
 
 fn main() -> Result <(), Box<dyn Error>> {
 
@@ -34,7 +35,7 @@ fn main() -> Result <(), Box<dyn Error>> {
     // but for this project, mpsc channels are fine (they are built in the standard library).
     let (render_tx, render_rx) = mpsc::channel();
     let render_handle = thread::spawn(move ||  {
-        let mut last_frame = frame::new_frame();
+        let mut last_frame = new_frame();
         let mut stdout = io::stdout();
         render::render(&mut stdout, &last_frame, &last_frame, true);
         loop {
@@ -48,6 +49,9 @@ fn main() -> Result <(), Box<dyn Error>> {
     });
 
     'gameloop: loop {
+        //Per-frame init
+        let curr_frame = new_frame();
+
         //Input
         while event::poll(Duration::default())? {
             if let Event::Key(key_event) = event::read()? {
@@ -60,9 +64,15 @@ fn main() -> Result <(), Box<dyn Error>> {
                 }
             }
         }
+
+        //Draw & render
+        let _ = render_tx.send(curr_frame); // no needed to get the result
+        thread::sleep(Duration::from_millis(1));
     }
 
     //Cleanup
+    drop(render_tx);
+    render_handle.join().unwrap();
     audio.wait();
     stdout.execute(Show)?;   //reverse order
     stdout.execute(LeaveAlternateScreen)?;
