@@ -8,7 +8,8 @@ use crossterm::event::{Event, KeyCode};
 use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
 use rusty_audio::Audio;
 use invaders::{frame, render};
-use invaders::frame::new_frame;
+use invaders::frame::{Drawable, new_frame};
+use invaders::player::Player;
 
 fn main() -> Result <(), Box<dyn Error>> {
 
@@ -27,7 +28,7 @@ fn main() -> Result <(), Box<dyn Error>> {
     let mut stdout = io::stdout();
     terminal::enable_raw_mode()?;   //to get input from keyboard. The "?" is to crash if an error occurs
     stdout.execute(EnterAlternateScreen)?;  // "execute" is an extension provided by crossterm
-                                                     // to ommediatelly execute something
+                                                     // to immediately execute something
     stdout.execute(Hide)?;
 
     //render loop
@@ -48,14 +49,18 @@ fn main() -> Result <(), Box<dyn Error>> {
         }
     });
 
+    let mut player  = Player::new();
     'gameloop: loop {
+
         //Per-frame init
-        let curr_frame = new_frame();
+        let mut curr_frame = new_frame();
 
         //Input
         while event::poll(Duration::default())? {
             if let Event::Key(key_event) = event::read()? {
                 match key_event.code {
+                    KeyCode::Left => player.move_left(),
+                    KeyCode::Right => player.move_right(),
                     KeyCode::Esc | KeyCode::Char('q') => {
                         audio.play("lose");
                         break 'gameloop
@@ -66,6 +71,7 @@ fn main() -> Result <(), Box<dyn Error>> {
         }
 
         //Draw & render
+        player.draw(&mut curr_frame);
         let _ = render_tx.send(curr_frame); // no needed to get the result
         thread::sleep(Duration::from_millis(1));
     }
@@ -76,7 +82,7 @@ fn main() -> Result <(), Box<dyn Error>> {
     audio.wait();
     stdout.execute(Show)?;   //reverse order
     stdout.execute(LeaveAlternateScreen)?;
-    terminal::disable_raw_mode();
+    terminal::disable_raw_mode()?;
     Ok(())
 
 }
