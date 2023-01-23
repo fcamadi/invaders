@@ -7,9 +7,9 @@ use crate::frame::Frame;
 
 pub fn render(stdout: &mut Stdout, last_frame: &Frame, curr_frame: &Frame, force: bool) {
     if force { //to force rendering the entire frame: first we clear the screen
-        stdout.queue(SetBackgroundColor(Color::Blue)).unwrap();
-        stdout.queue(Clear(ClearType::All)).unwrap();
         stdout.queue(SetBackgroundColor(Color::Black)).unwrap();
+        stdout.queue(Clear(ClearType::All)).unwrap();
+        stdout.queue(SetBackgroundColor(Color::Blue)).unwrap();
     }
     for (x, col) in curr_frame.iter().enumerate() {
         for (y, s) in col.iter().enumerate() {
