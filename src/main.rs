@@ -9,6 +9,7 @@ use crossterm::terminal::{EnterAlternateScreen, LeaveAlternateScreen};
 use rusty_audio::Audio;
 use invaders::{frame, render};
 use invaders::frame::{Drawable, new_frame};
+use invaders::invaders::{Invader, Invaders};
 use invaders::player::Player;
 
 fn main() -> Result <(), Box<dyn Error>> {
@@ -51,6 +52,7 @@ fn main() -> Result <(), Box<dyn Error>> {
 
     let mut player  = Player::new();
     let mut instant = Instant::now();
+    let mut invaders = Invaders::new();
 
     'gameloop: loop {
 
@@ -82,9 +84,18 @@ fn main() -> Result <(), Box<dyn Error>> {
 
         // update timers
         player.update(delta);
+        if invaders.update(delta) {
+            audio.play("move");
+        }
 
         //Draw & render
-        player.draw(&mut curr_frame);
+        //player.draw(&mut curr_frame);
+        //invaders.draw(&mut curr_frame); adding this line would work, but let's try generics
+        let drawables : Vec<&dyn Drawable> = vec![&player, &invaders];
+        for drawable in drawables {
+            drawable.draw(&mut curr_frame);
+        }
+
         let _ = render_tx.send(curr_frame); // no needed to get the result
         thread::sleep(Duration::from_millis(1));
     }
