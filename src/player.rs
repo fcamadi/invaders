@@ -33,7 +33,7 @@ impl Player {
     }
 
     pub fn shoot(&mut self) -> bool {
-        if self.shots.len() < 2 {
+        if self.shots.len() < 3 {
             self.shots.push(Shot::new(self.x, self.y - 1));
             true
         } else {

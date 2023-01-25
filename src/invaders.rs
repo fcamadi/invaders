@@ -33,7 +33,7 @@ impl Invaders {
         }
         Self {
             army,
-            move_timer: Timer::from_millis(2000),
+            move_timer: Timer::from_millis(200),  //the lower, the faster
             direction: 1, //right direction
         }
     }
@@ -57,7 +57,7 @@ impl Invaders {
                 }
             }
             if downwards {
-                let new_duration = max(self.move_timer.duration.as_millis() - 250, 250);
+                let new_duration = max(self.move_timer.duration.as_millis() - 199, 199);
                 self.move_timer = Timer::from_millis(new_duration as u64);
                 for invader in self.army.iter_mut() {
                     invader.y += 1;
@@ -77,7 +77,7 @@ impl Invaders {
     }
 
     pub fn reached_bottom(&self) -> bool {
-        self.army.iter().map(|invader| invader.y).max().unwrap_or(0) >= NUM_COLS - 1
+        self.army.iter().map(|invader| invader.y).max().unwrap_or(0) >= NUM_ROWS - 1
     }
 
     pub fn invader_killed_at(&mut self, x:usize, y:usize) -> bool {
